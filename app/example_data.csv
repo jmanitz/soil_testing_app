@@ -1,0 +1,29 @@
+﻿id,element,value
+sample1,Nitrogen,8.5
+sample2,Nitrogen,14
+sample3,Nitrogen,12.5
+sample4,Nitrogen,34
+sample1,Phosphorus,7.5
+sample2,Phosphorus,5.24
+sample3,Phosphorus,3.5
+sample4,Phosphorus,12.7
+sample1,Potassium,23
+sample2,Potassium,13
+sample3,Potassium,16
+sample4,Potassium,9.5
+sample1,pH value,6.03
+sample2,pH value,6.94
+sample3,pH value,6.45
+sample4,pH value,5.93
+sample1,Organic matter,6.32
+sample2,Organic matter,6.98
+sample3,Organic matter,3.22
+sample4,Organic matter,4.26
+sample1,Soil respiration,123
+sample2,Soil respiration,95
+sample3,Soil respiration,143
+sample4,Soil respiration,230
+sample1,Overall soil health,72
+sample2,Overall soil health,68
+sample3,Overall soil health,56
+sample4,Overall soil health,87
