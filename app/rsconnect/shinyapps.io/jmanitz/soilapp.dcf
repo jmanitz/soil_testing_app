@@ -1,0 +1,12 @@
+name: soilapp
+title: app
+username: jmanitz
+account: jmanitz
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13216706
+bundleId: 9330662
+url: https://jmanitz.shinyapps.io/soilapp/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
