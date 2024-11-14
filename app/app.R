@@ -6,6 +6,7 @@ library(shinyBS)
 library(bslib)
 library(fresh)
 require(gt)
+require(fontawesome)
 
 # Define Colors
 # https://www.figma.com/design/TIFEm2kx0n8nA7IZI0viUG/Salt%3A-Color-Library-(Community)?node-id=3907-1614&node-type=canvas
@@ -32,13 +33,13 @@ cider400 <- "#DB8A48"
 # Define Optimum values for reference 
 grp <- c("Overall", rep("Macronutrients", times = 3), "Acidity", "Soil composition", "Soil respiration")
 elmts <- c("Overall soil health", "Nitrogen", "Phosphorus", "Potassium", "pH value", "Organic matter", "Soil respiration")
-elmts_unit <- c("","N, mg/kg","P, ppm","K, 10ppm","1:1, H2O", "%", "CO2-C, ppm")
-dt_ref <- data.frame(id = "optimal", group = grp, element = elmts, elmts_nm = paste0(elmts,"\n(",elmts_unit,")"), 
+elmts_unit <- c("",paste0("\n(",c("N, mg/kg","P, ppm","K, 10ppm","1:1, H2O", "%", "CO2-C, ppm"),")")) 
+dt_ref <- data.frame(id = "optimal\nrange", group = grp, element = elmts, elmts_nm = paste0(elmts,elmts_unit), 
   value=c(100, 20, 8, 13, 7, 4, 150), low=c(NA, 10, 4, 10, 5.5, 3, 100), high=c(NA, 50,14,16, 8, 6, 200))
 
 # Define UI ----
 ui <- navbarPage(
-  title = div(img(src = "Icon.png", height = "57.5px", width = "auto"), 'Soil Regeneration Hub'),
+  title = div(img(src = "../Icon.png", height = "57.5px", width = "auto"), 'Soil Regeneration Hub'),
     theme = bs_theme(
       bootswatch = "sandstone", 
       bg = "#F2F5FA", #"#E1E8F7",
@@ -145,13 +146,13 @@ server <- function(input, output) { #  function(input, output, session) {
       dt <- data.frame(
         id = rep("sample", times=7), 
         group=c("Overall", rep("Macronutrients", times = 3), "Acidity", "Soil composition", "Soil respiration"), 
-        element = elmts, elmts_nm = paste0(elmts,"\n(",elmts_unit,")"), 
+        element = elmts, elmts_nm = paste0(elmts,elmts_unit), 
         # value = c(72, 8.5, 7.6, 23, 5, 6.7, 123))
         value = c(input$hval, input$nitr, input$phos, input$pota, input$ph, input$orgm, input$resp)
       )
     }else{
       if(input$sel == "example data"){
-        dt <- read.csv("../example_data.csv", header=TRUE)
+        dt <- read.csv("example_data.csv", header=TRUE)
       }else{
       validate(
         # need(ext == "csv", "Please upload a csv file"))
@@ -292,21 +293,39 @@ server <- function(input, output) { #  function(input, output, session) {
   
   output$tab <- render_gt({
     
-    tab_dt <- dt() %>% pivot_wider(names_from = id) %>% 
-      left_join(dt_ref %>% select(-c(id, value, group, elmts_nm)),by="element") %>% 
-      select(-c(element))
-      
-    tab_dt %>% 
-      gt(groupname_col = "group") %>% fmt_number(decimals = 2, drop_trailing_zeros=TRUE) %>% 
+    tab_dt <- left_join(dt(), dt_ref %>% select(-c(id, value, group, elmts_nm)), by="element") %>% select(-element) %>% 
+      mutate(valC = case_when(value < low ~ "arrow-down", value > high ~ "arrow-up", .default = "check-circle")) %>% 
+      pivot_wider(names_from = id, values_from=c(value,valC), names_vary = 'slowest')#, names_glue = "{id}_{.value}", names_sort=FALSE) 
+    
+    # Formatting table    
+    tt <- tab_dt %>% 
+      gt(groupname_col = "group") %>% sub_missing(missing_text = '-') %>% 
+      fmt_icon(columns = starts_with("valC"), 
+               fill_color = c("arrow-up"=citrine400, "arrow-down"=salmon400, "check-circle"=green400)) %>% 
+      fmt_number(decimals = 1, drop_trailing_zeros=FALSE) %>% 
       tab_spanner(label = "Optimal range", columns = c(low, high)) %>% 
-      tab_style(style=cell_borders(sides="left"), locations = cells_body(columns=c(low)))
-  })
+      tab_style(style=cell_borders(sides="left"), locations = cells_body(columns=c(low))) %>% 
+      tab_style(style=cell_borders(sides="right"),locations = cells_body(columns=c(high))) 
+    
+    if(input$sel == 'manual'){
+      tt <- tt %>% cols_merge(columns = c("value_sample", "valC_sample"), pattern = "{1} {2}")
+    }else{
+      print(((ncol(tab_dt)-4)/2))
+      for(i in 1:((ncol(tab_dt)-4)/2)){
+        tt <- tt %>% 
+          cols_merge(columns = c(paste0("value_sample",i), paste0("valC_sample",i)), pattern = "{1} {2}") 
+      } 
+    } 
+    tt %>% cols_label_with(fn = ~gsub("value_", "",.)) 
+    
+    })
   
   output$recommendations <- render_gt({
     
-    rdt <- read.csv('../recommendations.csv', header=TRUE)
+    rdt <- read.csv('recommendations.csv', header=TRUE)
     rdt %>% 
-      gt(groupname_col = "Problem") 
+      gt(groupname_col = "Problem")  %>% 
+      tab_options(row_group.padding = px(6), row_group.font.weight ="bold") 
 
   })
 }
