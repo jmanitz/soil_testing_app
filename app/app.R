@@ -74,8 +74,6 @@ ui <- navbarPage(
         sliderInput("orgm", "Organic Matter (%)", 0, 20, 5),
         numericInput('resp', 'Soil Respiration (CO2-C, ppm)', 123, min = 0, max = 500)
       )
-      # textInput("txt", "Text input:", "text here"),
-      # actionButton("action2", "Button2", class = "btn-primary")
     ),
     
     mainPanel(
@@ -162,7 +160,9 @@ server <- function(input, output) { #  function(input, output, session) {
       }
       dt[,c("group","elmts_nm")] <- dt_ref[match(dt$element, dt_ref$element), c("group","elmts_nm")]
     }
-    return(dt)
+    left_join(dt, dt_ref %>% select(element, low, high), by="element") %>% 
+      mutate(valC = case_when(value < low ~ "arrow-down", value > high ~ "arrow-up", .default = "check-circle")) %>% 
+      select(-c(low, high)) 
   })
   
   # Overall Soil Health
@@ -310,7 +310,6 @@ server <- function(input, output) { #  function(input, output, session) {
     if(input$sel == 'manual'){
       tt <- tt %>% cols_merge(columns = c("value_sample", "valC_sample"), pattern = "{1} {2}")
     }else{
-      print(((ncol(tab_dt)-4)/2))
       for(i in 1:((ncol(tab_dt)-4)/2)){
         tt <- tt %>% 
           cols_merge(columns = c(paste0("value_sample",i), paste0("valC_sample",i)), pattern = "{1} {2}") 
@@ -323,7 +322,14 @@ server <- function(input, output) { #  function(input, output, session) {
   output$recommendations <- render_gt({
     
     rdt <- read.csv('recommendations.csv', header=TRUE)
-    rdt %>% 
+    
+    prob_list <- dt() %>% filter(valC != "check-circle") %>% 
+      mutate(
+        ll =recode(valC, `arrow-up` = "High", `arrow-down`="Low"),
+        problem = paste(ll,element) 
+      ) %>% pull(problem)
+    
+    rdt %>% filter(Problem %in% prob_list) %>% 
       gt(groupname_col = "Problem")  %>% 
       tab_options(row_group.padding = px(6), row_group.font.weight ="bold") 
 
