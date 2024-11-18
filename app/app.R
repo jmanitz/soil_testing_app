@@ -8,7 +8,7 @@ library(fresh)
 require(gt)
 require(fontawesome)
 
-# Define Colors
+# Define Color Palette
 # https://www.figma.com/design/TIFEm2kx0n8nA7IZI0viUG/Salt%3A-Color-Library-(Community)?node-id=3907-1614&node-type=canvas
 
 green400 <- "#309C5A"
@@ -39,8 +39,8 @@ dt_ref <- data.frame(id = "optimal\nrange", group = grp, element = elmts, elmts_
 
 # Define UI ----
 ui <- navbarPage(
-  title = div(img(src = "../Icon.png", height = "57.5px", width = "auto"), 'Soil Regeneration Hub'),
-    theme = bs_theme(
+  title = h2(img(src = "Icon.png", height = "40px", width = "auto"), 'Soil Regeneration Hub'),
+  theme = bs_theme(
       bootswatch = "sandstone", 
       bg = "#F2F5FA", #"#E1E8F7",
       fg = green700, ##D1F4C9",
@@ -48,12 +48,12 @@ ui <- navbarPage(
       secondary = green400,#"#309C5A", 
       info = green400,
       base_font = font_google("Karla", local = TRUE)
-    ), 
+  ),
   windowTitle = 'Soil Regeneration Hub',
-  # icon = "Icon.png",
-  # icon = shiny::icon("Icon"),
-
-  tabPanel("Your Soil Test Results", 
+  # icon = "www/Icon.png",
+  # icon = shiny::icon("www/Icon.png"),
+  
+  tabPanel(title = "Your Soil Test Results", 
     sidebarLayout(
       
     sidebarPanel(
@@ -115,28 +115,31 @@ ui <- navbarPage(
     )  
   )),
   
+  tabPanel("Recommendations", 
+    mainPanel(
+      card(full_screen = TRUE, card_header("Recommendations to Improve Your Soil Health"),
+           tableOutput('recommendations')), width=600
+  )),
+
   tabPanel("Information About Your Location", 
     mainPanel(
-      card(full_screen = TRUE, height = 600, #card_header("Information About Your Location"),
-           imageOutput('locData'))
-  )),
-  
-  tabPanel("Recommendations", 
-           mainPanel(
-             
-      card(full_screen = TRUE, height = 600, width=600, card_header("Recommendations to Improve Your Soil Health"),
-           tableOutput('recommendations'))           
-  ))
-  
+      selectInput("loc", "Select your location", width=600,
+                  choices = c("Chicago","Los Angeles","Miami","New York","Seattle")),
+      htmlOutput("locFrame")
+    )
+  )  
 ) 
 
 # Define server logic ----
   
 server <- function(input, output) { #  function(input, output, session) {
 
-  # <TODO> Mock-up for location data
-  output$locData <- renderImage({
-    list(src = "loc_data_mock.png", width = "100%", height = "150%")}, deleteFile = FALSE)
+  # iframe for location information
+  output$locFrame <- renderUI({
+    loc <- input$loc
+    test <- "https://scottynomad.github.io/garden-widget/"
+    tags$iframe(src=test, height=600, width=600)
+  })
 
   # Combine the selected variables into a new data frame
   dt <- reactive({
@@ -333,7 +336,7 @@ server <- function(input, output) { #  function(input, output, session) {
       gt(groupname_col = "Problem")  %>% 
       tab_options(row_group.padding = px(6), row_group.font.weight ="bold") 
 
-  })
+  }, width=600)
 }
 
 # Run the app ----
