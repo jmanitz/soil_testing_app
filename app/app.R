@@ -53,7 +53,7 @@ ui <- navbarPage(
   # icon = "www/Icon.png",
   # icon = shiny::icon("www/Icon.png"),
   
-  tabPanel(title = "Your Soil Test Results", 
+  tabPanel(title = "Your Test Results", 
     sidebarLayout(
       
     sidebarPanel(
@@ -77,7 +77,7 @@ ui <- navbarPage(
     ),
     
     mainPanel(
-      h3("Soil Test Results"),
+      h3("Your Test Results"),
       layout_column_wrap(width = 1/2, height = 270,
         card(full_screen = TRUE, 
              card_header(class = "d-flex justify-content-between", "Overall Soil Health", icon("circle-info") |>
@@ -118,13 +118,13 @@ ui <- navbarPage(
   tabPanel("Recommendations", 
     mainPanel(
       card(full_screen = TRUE, card_header("Recommendations to Improve Your Soil Health"),
-           tableOutput('recommendations')), width=600
+           tableOutput('recommendations')), width=600, 
   )),
 
-  tabPanel("Information About Your Location", 
+  tabPanel("About Your Location", 
     mainPanel(
-      selectInput("loc", "Select your location", width=600,
-                  choices = c("Chicago","Los Angeles","Miami","New York","Seattle")),
+      # selectInput("loc", "Select your location", width=600,
+      #             choices = c("Chicago","Los Angeles","Miami","New York","Seattle")),
       htmlOutput("locFrame")
     )
   )  
@@ -138,7 +138,7 @@ server <- function(input, output) { #  function(input, output, session) {
   output$locFrame <- renderUI({
     loc <- input$loc
     test <- "https://scottynomad.github.io/garden-widget/"
-    tags$iframe(src=test, height=600, width=600)
+    tags$iframe(src=test, height=1200, width=800)
   })
 
   # Combine the selected variables into a new data frame
@@ -336,7 +336,7 @@ server <- function(input, output) { #  function(input, output, session) {
       gt(groupname_col = "Problem")  %>% 
       tab_options(row_group.padding = px(6), row_group.font.weight ="bold") 
 
-  }, width=600)
+  }, width=600, height=800)
 }
 
 # Run the app ----
